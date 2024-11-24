@@ -28,6 +28,8 @@ if (!$user) {
     exit();
 }
 
+// Format the registered_at date
+$createdAt = date("F j, Y, g:i a", strtotime($user['registered_at'])); // Format as "Month Day, Year, Hour:Minute AM/PM"
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -127,6 +129,11 @@ if (!$user) {
             <tr>
                 <td><strong>Role:</strong></td>
                 <td><?php echo $user['role']; ?></td>
+            </tr>
+            <!-- Display Account Creation Date -->
+            <tr>
+                <td><strong>Account Created On:</strong></td>
+                <td><?php echo $createdAt; ?></td>
             </tr>
         </table>
         

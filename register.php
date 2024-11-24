@@ -17,36 +17,42 @@ if (isset($_POST['submit'])) {
     $pw = $_POST['pw'];
     $cpw = $_POST['cpw'];
 
-    // Check if passwords match
-    if ($pw !== $cpw) {
-        $message = "Passwords do not match!";
+    // Validate email format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Invalid email format!";
     } else {
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT * FROM passengers WHERE email = ?");
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $message = "Email already registered!";
+        // Check if passwords match
+        if ($pw !== $cpw) {
+            $message = "Passwords do not match!";
         } else {
-            // Hash password before storing
-            $hashed_pw = password_hash($pw, PASSWORD_DEFAULT);
-
-            // Insert user data into the database
-            $stmt = $conn->prepare("INSERT INTO passengers (p_fname, p_lname, p_age, p_contact, p_gender, email, password) 
-                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssissss", $fname, $lname, $age, $mob, $gender, $email, $hashed_pw);
+            // Check if email already exists
+            $stmt = $conn->prepare("SELECT * FROM passengers WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            if ($stmt->execute()) {  
-                $message = "You have been successfully registered.";
-            } else {  
-                error_log("SQL Error: " . mysqli_error($conn));  // Log error for debugging
-                $message = "Could not insert record. Please try again.";
+            if ($result->num_rows > 0) {
+                $message = "Email already registered!";
+            } else {
+                // Hash password before storing
+                $hashed_pw = password_hash($pw, PASSWORD_DEFAULT);
+
+                // Insert user data into the database
+                $stmt = $conn->prepare("INSERT INTO passengers (p_fname, p_lname, p_age, p_contact, p_gender, email, password) 
+                                        VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssissss", $fname, $lname, $age, $mob, $gender, $email, $hashed_pw);
+                
+                if ($stmt->execute()) {  
+                    $message = "You have been successfully registered.";
+                } else {  
+                    error_log("SQL Error: " . mysqli_error($conn));  // Log error for debugging
+                    $message = "Could not insert record. Please try again.";
+                }
             }
         }
     }
 
+    // Display message on the page using JavaScript
     echo "<script type='text/javascript'>alert('$message');</script>";
 }
 ?>
@@ -116,10 +122,8 @@ if (isset($_POST['submit'])) {
         }
         #logintext {
             margin-top: 15px;
-            
-	
-
         }
+
         #logintext input {
             width: 100%;
             padding: 10px;
@@ -204,8 +208,8 @@ if (isset($_POST['submit'])) {
             </p>
         </form>
 
-         <!-- Link to login page -->
-         <a href="login.php" id="backToLogin">Click Here to Login</a>
+        <!-- Link to login page -->
+        <a href="login.php" id="backToLogin">Click Here to Login</a>
     </div>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+include("header.php");
 
 if (!isset($_GET['pnr'])) {
     echo "<script type='text/javascript'>
@@ -12,7 +12,7 @@ if (!isset($_GET['pnr'])) {
 
 $pnr = $_GET['pnr'];
 
-
+// Database connection
 $conn = mysqli_connect("localhost", "root", "", "nairobi_commuters");
 if (!$conn) {  
     die("<script type='text/javascript'>
@@ -21,17 +21,28 @@ if (!$conn) {
          </script>");
 }
 
-
-$stmt = $conn->prepare("SELECT p.PNR, p.email, p.seat_number, p.payment_status, t.t_name, t.route 
-                        FROM passengers p 
-                        JOIN trains t ON p.t_no = t.t_no 
-                        WHERE p.PNR = ?");
+// Query to fetch ticket details, including information from the `tickets` table
+$stmt = $conn->prepare("
+    SELECT 
+        p.PNR, 
+        p.email, 
+        p.seat_number, 
+        p.payment_status, 
+        t.t_name, 
+        t.route,
+        tk.t_status,
+        tk.t_fare
+    FROM passengers p
+    JOIN trains t ON p.t_no = t.t_no
+    JOIN tickets tk ON p.PNR = tk.PNR
+    WHERE p.PNR = ?
+");
 $stmt->bind_param("s", $pnr);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result && $row = $result->fetch_assoc()) {
-    
+    // Data successfully fetched
 } else {
     echo "<script type='text/javascript'>
             alert('Ticket not found.');
@@ -88,6 +99,8 @@ $stmt->close();
             <p><strong>Route:</strong> <?php echo htmlspecialchars($row['route']); ?></p>
             <p><strong>Seat Number:</strong> <?php echo htmlspecialchars($row['seat_number']); ?></p>
             <p><strong>Payment Status:</strong> <?php echo htmlspecialchars($row['payment_status']); ?></p>
+            <p><strong>Ticket Status:</strong> <?php echo htmlspecialchars($row['t_status']); ?></p>
+            <p><strong>Fare:</strong> Ksh <?php echo htmlspecialchars($row['t_fare']); ?></p>
         </div>
         <p>Thank you for booking with Nairobi Commuters Railways!</p>
     </div>

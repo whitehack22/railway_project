@@ -1,25 +1,23 @@
-<?php 
+<?php
 session_start();
 
 if (empty($_SESSION['user_info'])) {
-    echo "<script type='text/javascript'>
+    echo "<script>
             alert('Please login before proceeding further!');
             window.location.href='login.php';
           </script>";
     exit();
 }
 
-// Database connection
 $conn = new mysqli("localhost", "root", "", "nairobi_commuters");
 if ($conn->connect_error) {
-    echo "<script type='text/javascript'>
+    echo "<script>
             alert('Database connection failed. Please try again later.');
             window.location.href='login.php';
           </script>";
     exit();
 }
 
-// Generate a unique PNR
 function generatePNR() {
     return substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 8);
 }
@@ -29,27 +27,24 @@ if (isset($_POST['submit'])) {
     $seat_number = $_POST['seats'];
     $email = $_SESSION['user_info'];
 
-    // Check seat availability
-    $seat_check_stmt = $conn->prepare("SELECT is_available FROM seats 
-                                       WHERE t_no = (SELECT t_no FROM trains WHERE t_name = ?) 
-                                       AND seat_number = ?");
-    $seat_check_stmt->bind_param("ss", $train_name, $seat_number);
-    $seat_check_stmt->execute();
-    $seat_result = $seat_check_stmt->get_result();
+    // Validate train name
+    $train_check_stmt = $conn->prepare("SELECT t_no FROM trains WHERE t_name = ?");
+    $train_check_stmt->bind_param("s", $train_name);
+    $train_check_stmt->execute();
+    $train_check_stmt->bind_result($train_no);
+    if (!$train_check_stmt->fetch()) {
+        echo "<script>alert('Invalid train selected. Please try again.'); window.location.href='book_ticket.php';</script>";
+        exit();
+    }
+    $train_check_stmt->close();
 
-    if ($seat_result && $seat_row = $seat_result->fetch_assoc()) {
-        if ($seat_row['is_available'] == 0) {
-            echo "<script type='text/javascript'>
-                    alert('Seat is already booked. Please choose another seat.');
-                    window.location.href='book_ticket.php';
-                  </script>";
-            exit();
-        }
-    } else {
-        echo "<script type='text/javascript'>
-                alert('Invalid seat selection. Please try again.');
-                window.location.href='book_ticket.php';
-              </script>";
+    // Check seat availability
+    $seat_check_stmt = $conn->prepare("SELECT is_available FROM seats WHERE t_no = ? AND seat_number = ?");
+    $seat_check_stmt->bind_param("is", $train_no, $seat_number);
+    $seat_check_stmt->execute();
+    $seat_check_stmt->bind_result($is_available);
+    if (!$seat_check_stmt->fetch() || $is_available == 0) {
+        echo "<script>alert('Seat is already booked or invalid. Please try again.'); window.location.href='book_ticket.php';</script>";
         exit();
     }
     $seat_check_stmt->close();
@@ -64,44 +59,39 @@ if (isset($_POST['submit'])) {
     } while ($check_stmt->num_rows > 0);
     $check_stmt->close();
 
-    // Begin transaction
     $conn->begin_transaction();
 
     try {
-        // Update seat as booked
-        $update_seat_stmt = $conn->prepare("UPDATE seats 
-                                            SET is_available = 0, passenger_email = ? 
-                                            WHERE t_no = (SELECT t_no FROM trains WHERE t_name = ?) 
-                                            AND seat_number = ?");
-        $update_seat_stmt->bind_param("sss", $email, $train_name, $seat_number);
+        $update_seat_stmt = $conn->prepare("UPDATE seats SET is_available = 0, passenger_email = ? WHERE t_no = ? AND seat_number = ?");
+        $update_seat_stmt->bind_param("sis", $email, $train_no, $seat_number);
         $update_seat_stmt->execute();
         $update_seat_stmt->close();
 
-        // Insert passenger details
-        $insert_passenger_stmt = $conn->prepare(
-            "INSERT INTO passengers (email, t_no, seat_number, PNR, payment_status) 
-             VALUES (?, (SELECT t_no FROM trains WHERE t_name = ?), ?, ?, 'Pending')"
-        );
-        $insert_passenger_stmt->bind_param("ssss", $email, $train_name, $seat_number, $pnr);
+        $insert_passenger_stmt = $conn->prepare("INSERT INTO passengers (email, t_no, seat_number, PNR, payment_status) VALUES (?, ?, ?, ?, 'Pending')");
+        $insert_passenger_stmt->bind_param("siss", $email, $train_no, $seat_number, $pnr);
         $insert_passenger_stmt->execute();
+        $passenger_id = $conn->insert_id;
         $insert_passenger_stmt->close();
 
-        // Commit transaction
+        $ticket_fare = 100;
+        $insert_ticket_stmt = $conn->prepare("INSERT INTO tickets (PNR, t_status, t_fare, p_id) VALUES (?, 'Waiting', ?, ?)");
+        $insert_ticket_stmt->bind_param("sii", $pnr, $ticket_fare, $passenger_id);
+        $insert_ticket_stmt->execute();
+        $insert_ticket_stmt->close();
+
         $conn->commit();
 
-        // Redirect to payment page
         $_SESSION['pnr'] = $pnr;
         header("Location: payment.php");
         exit();
     } catch (Exception $e) {
+        error_log("Transaction failed: " . $e->getMessage());
         $conn->rollback();
-        echo "<script type='text/javascript'>
-                alert('Transaction failed. Please try again.');
-                window.location.href='book_ticket.php';
-              </script>";
+        echo "<script>alert('Transaction failed. Please try again.'); window.location.href='book_ticket.php';</script>";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -188,7 +178,24 @@ if (isset($_POST['submit'])) {
             return true;
         }
 
-        
+        // Fetch available trains dynamically
+        function fetchTrains() {
+            fetch('fetch_trains.php')
+                .then(response => response.json())
+                .then(data => {
+                    const trainsDropdown = document.getElementById("trains");
+                    trainsDropdown.innerHTML = '<option selected disabled>-- Select a Train --</option>';
+                    data.forEach(train => {
+                        const option = document.createElement("option");
+                        option.value = train.t_name;
+                        option.textContent = train.t_name;
+                        trainsDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching trains:', error));
+        }
+
+        // Fetch available seats for the selected train
         function fetchSeats(trainName) {
             if (!trainName) return;
             fetch(`fetch_seats.php?train_name=${encodeURIComponent(trainName)}`)
@@ -205,6 +212,9 @@ if (isset($_POST['submit'])) {
                 })
                 .catch(error => console.error('Error fetching seats:', error));
         }
+
+        // Fetch trains when the page loads
+        window.onload = fetchTrains;
     </script>
 </head>
 <body>
@@ -214,15 +224,15 @@ if (isset($_POST['submit'])) {
         <form method="post" onsubmit="return validate()">
             <select id="trains" name="trains" onchange="fetchSeats(this.value)" required>
                 <option selected disabled>-- Select a Train --</option>
-                <option value="Express A">Express A - Embakasi Village to Ruiru</option>
-                <option value="Commuter X">Commuter X - Syokimau to Embakasi Village</option>
+                <!-- Dynamically populated train options -->
             </select>
             <select id="seats" name="seats" required>
                 <option selected disabled>-- Select a Seat --</option>
-                
+                <!-- Dynamically populated seat options -->
             </select>
             <button type="submit" name="submit" id="submit">Submit</button>
         </form>
     </div>
 </body>
 </html>
+

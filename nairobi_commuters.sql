@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 23, 2024 at 07:49 AM
+-- Generation Time: Nov 24, 2024 at 01:20 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -20,6 +20,28 @@ SET time_zone = "+00:00";
 --
 -- Database: `nairobi_commuters`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `email` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`id`, `username`, `password`, `created_at`, `email`) VALUES
+(1, 'Raizzy', '$2y$10$bU.1j73723nPV3oboeMKjep6A9B9PLJERgpwrDsHgvyAzI2O3m2ty', '2024-11-23 10:03:35', ''),
+(6, 'Mugo', '$2y$10$9EQ/MZ1sz.lYPfu0LWeq3umhAbH1r0VyY5zBZz80v6JAFHKxpOl92', '2024-11-24 12:13:49', 'githaigaraizzy@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -40,32 +62,20 @@ CREATE TABLE `passengers` (
   `PNR` varchar(10) DEFAULT NULL,
   `payment_status` enum('Pending','Completed') DEFAULT 'Pending',
   `seat_number` varchar(10) DEFAULT NULL,
-  `role` varchar(20) DEFAULT 'user'
+  `role` varchar(20) DEFAULT 'user',
+  `registered_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Dumping data for table `passengers`
 --
 
-INSERT INTO `passengers` (`p_id`, `p_fname`, `p_lname`, `p_age`, `p_contact`, `p_gender`, `email`, `password`, `t_no`, `PNR`, `payment_status`, `seat_number`, `role`) VALUES
-(1, 'John', 'Doe', 34, '0701234567', 'Male', 'john.doe@example.com', 'password123', 12951, NULL, 'Pending', NULL, 'user'),
-(2, 'Jane', 'Kamau', 28, '0729876543', 'Female', 'jane.kamau@example.com', 'pass456', NULL, NULL, 'Pending', NULL, 'user'),
-(3, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(4, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(5, 'J', 'A', 21, '0700000000', 'Male', 'j@gmail.com', '123456789', 1001, 'TZCJRI6H', 'Completed', NULL, 'user'),
-(6, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(7, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(8, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(9, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(10, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(11, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(12, 'J', 'A', 22, '0712345678', 'Male', 'jj@gmail.com', '123456789', 1002, '31VPPC0V', 'Completed', NULL, 'user'),
-(13, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(14, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(15, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(16, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(17, '', '', 0, '', '', '', '', NULL, NULL, 'Pending', NULL, 'user'),
-(24, NULL, NULL, NULL, NULL, NULL, 'jj@gmail.com', NULL, 1002, 'YU8PYJUG', '', 'B10', 'user');
+INSERT INTO `passengers` (`p_id`, `p_fname`, `p_lname`, `p_age`, `p_contact`, `p_gender`, `email`, `password`, `t_no`, `PNR`, `payment_status`, `seat_number`, `role`, `registered_at`) VALUES
+(50, 'Gordon', 'Amos', 21, '0792737829', 'Male', 'gordon@gmail.com', '$2y$10$1fTzu0YJpwbwHbIvvO8Evum7WmunoRYw9kXxxDpJjIBvwVjZBLoea', NULL, NULL, 'Pending', NULL, 'user', '2024-11-24 13:48:30'),
+(51, NULL, NULL, NULL, NULL, NULL, 'gordon@gmail.com', '$2y$10$1fTzu0YJpwbwHbIvvO8Evum7WmunoRYw9kXxxDpJjIBvwVjZBLoea', 1001, 'HGACUJR0', 'Pending', 'A2', 'user', '2024-11-24 13:57:19'),
+(52, NULL, NULL, NULL, NULL, NULL, 'gordon@gmail.com', '$2y$10$1fTzu0YJpwbwHbIvvO8Evum7WmunoRYw9kXxxDpJjIBvwVjZBLoea', 1001, '60YG3ERI', 'Pending', 'A8', 'user', '2024-11-24 13:58:50'),
+(53, NULL, NULL, NULL, NULL, NULL, 'gordon@gmail.com', '$2y$10$1fTzu0YJpwbwHbIvvO8Evum7WmunoRYw9kXxxDpJjIBvwVjZBLoea', 1001, '081U2D4Z', '', 'A2', 'user', '2024-11-24 14:15:44'),
+(54, NULL, NULL, NULL, NULL, NULL, 'gordon@gmail.com', NULL, 0, 'MO9KLV2E', '', 'S001', 'user', '2024-11-24 15:03:44');
 
 -- --------------------------------------------------------
 
@@ -88,18 +98,12 @@ CREATE TABLE `seats` (
 --
 
 INSERT INTO `seats` (`id`, `train_name`, `seat_number`, `is_available`, `passenger_email`, `train_id`, `t_no`) VALUES
-(1, 'Express A', 'A1', 1, NULL, NULL, 1001),
-(2, 'Express A', 'A2', 0, 'jj@gmail.com', NULL, 1001),
-(3, 'Express A', 'A3', 0, 'jj@gmail.com', NULL, 1001),
-(4, 'Express A', 'A4', 1, NULL, NULL, 1001),
-(5, 'Express A', 'A5', 0, 'jj@gmail.com', NULL, 1001),
-(6, 'Express A', 'A6', 1, NULL, NULL, 1001),
-(7, 'Express A', 'A7', 1, NULL, NULL, 1001),
+(2, 'Express A', 'A2', 0, 'gordon@gmail.com', NULL, 1001),
+(3, 'Express A', 'A3', 1, NULL, NULL, 1001),
+(5, 'Express A', 'A5', 1, NULL, NULL, 1001),
 (8, 'Express A', 'A8', 1, NULL, NULL, 1001),
-(9, 'Express A', 'A9', 0, 'jamesjohn@gmail.com', NULL, 1001),
+(9, 'Express A', 'A9', 1, NULL, NULL, 1001),
 (10, 'Express A', 'A10', 1, NULL, NULL, 1001),
-(11, 'Commuter X', 'B1', 1, NULL, NULL, 1002),
-(12, 'Commuter X', 'B2', 1, NULL, NULL, 1002),
 (13, 'Commuter X', 'B3', 1, NULL, NULL, 1002),
 (14, 'Commuter X', 'B4', 1, NULL, NULL, 1002),
 (15, 'Commuter X', 'B5', 1, NULL, NULL, 1002),
@@ -107,16 +111,12 @@ INSERT INTO `seats` (`id`, `train_name`, `seat_number`, `is_available`, `passeng
 (17, 'Commuter X', 'B7', 1, NULL, NULL, 1002),
 (18, 'Commuter X', 'B8', 1, NULL, NULL, 1002),
 (19, 'Commuter X', 'B9', 1, NULL, NULL, 1002),
-(20, 'Commuter X', 'B10', 0, 'jj@gmail.com', NULL, 1002),
-(21, 'Express A', 'A1', 1, NULL, NULL, 1001),
-(22, 'Express A', 'A2', 0, 'jj@gmail.com', NULL, 1001),
-(23, 'Express A', 'A3', 0, 'jj@gmail.com', NULL, 1001),
-(24, 'Express A', 'A4', 1, NULL, NULL, 1001),
-(25, 'Express A', 'A5', 0, 'jj@gmail.com', NULL, 1001),
-(26, 'Express A', 'A6', 1, NULL, NULL, 1001),
-(27, 'Express A', 'A7', 1, NULL, NULL, 1001),
+(20, 'Commuter X', 'B10', 1, NULL, NULL, 1002),
+(22, 'Express A', 'A2', 0, 'gordon@gmail.com', NULL, 1001),
+(23, 'Express A', 'A3', 1, NULL, NULL, 1001),
+(25, 'Express A', 'A5', 1, NULL, NULL, 1001),
 (28, 'Express A', 'A8', 1, NULL, NULL, 1001),
-(29, 'Express A', 'A9', 0, 'jamesjohn@gmail.com', NULL, 1001),
+(29, 'Express A', 'A9', 1, NULL, NULL, 1001),
 (30, 'Express A', 'A10', 1, NULL, NULL, 1001),
 (31, 'Commuter X', 'B1', 1, NULL, NULL, 1002),
 (32, 'Commuter X', 'B2', 1, NULL, NULL, 1002),
@@ -127,21 +127,22 @@ INSERT INTO `seats` (`id`, `train_name`, `seat_number`, `is_available`, `passeng
 (37, 'Commuter X', 'B7', 1, NULL, NULL, 1002),
 (38, 'Commuter X', 'B8', 1, NULL, NULL, 1002),
 (39, 'Commuter X', 'B9', 1, NULL, NULL, 1002),
-(40, 'Commuter X', 'B10', 0, 'jj@gmail.com', NULL, 1002);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `staff`
---
-
-CREATE TABLE `staff` (
-  `s_id` int(11) NOT NULL,
-  `s_fname` varchar(50) DEFAULT NULL,
-  `s_lname` varchar(50) DEFAULT NULL,
-  `s_department` varchar(50) NOT NULL,
-  `s_salary` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+(40, 'Commuter X', 'B10', 1, NULL, NULL, 1002),
+(291, 'Express B', 'S001', 0, 'gordon@gmail.com', 0, 0),
+(292, 'Express B', 'S002', 1, NULL, 0, 0),
+(293, 'Express B', 'S003', 1, NULL, 0, 0),
+(294, 'Express B', 'S004', 1, NULL, 0, 0),
+(295, 'Express B', 'S005', 1, NULL, 0, 0),
+(296, 'Express B', 'S006', 1, NULL, 0, 0),
+(297, 'Express B', 'S007', 1, NULL, 0, 0),
+(298, 'Express B', 'S008', 1, NULL, 0, 0),
+(299, 'Express B', 'S009', 1, NULL, 0, 0),
+(300, 'Express B', 'S010', 1, NULL, 0, 0),
+(301, 'Express B', 'S011', 1, NULL, 0, 0),
+(302, 'Express B', 'S012', 1, NULL, 0, 0),
+(303, 'Express B', 'S013', 1, NULL, 0, 0),
+(304, 'Express B', 'S014', 1, NULL, 0, 0),
+(305, 'Express B', 'S015', 1, NULL, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -160,9 +161,9 @@ CREATE TABLE `station` (
 --
 
 INSERT INTO `station` (`s_no`, `s_name`, `s_no_of_platforms`) VALUES
-(1, 'Embakasi Village', 4),
 (2, 'Syokimau', 3),
-(3, 'Ruiru', 2);
+(3, 'Ruiru', 2),
+(4, 'Embakasi Village', 5);
 
 -- --------------------------------------------------------
 
@@ -171,22 +172,19 @@ INSERT INTO `station` (`s_no`, `s_name`, `s_no_of_platforms`) VALUES
 --
 
 CREATE TABLE `tickets` (
-  `PNR` decimal(10,0) NOT NULL,
+  `PNR` varchar(10) NOT NULL,
   `t_status` varchar(20) NOT NULL DEFAULT 'Waiting',
   `t_fare` int(11) DEFAULT NULL,
-  `p_id` int(11) NOT NULL
+  `p_id` int(11) NOT NULL,
+  `booking_date` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Dumping data for table `tickets`
 --
 
-INSERT INTO `tickets` (`PNR`, `t_status`, `t_fare`, `p_id`) VALUES
-(1234567890, 'Confirmed', 300, 1),
-(1234567891, 'Confirmed', NULL, 0),
-(1234567892, 'Waiting', NULL, 0),
-(1234567893, 'Cancelled', NULL, 0),
-(9876543210, 'Waiting', 250, 2);
+INSERT INTO `tickets` (`PNR`, `t_status`, `t_fare`, `p_id`, `booking_date`) VALUES
+('MO9KLV2E', 'Ticket Acquired', 100, 54, '2024-11-24 15:03:44');
 
 -- --------------------------------------------------------
 
@@ -211,13 +209,20 @@ CREATE TABLE `trains` (
 --
 
 INSERT INTO `trains` (`t_no`, `t_name`, `t_source`, `t_destination`, `t_type`, `t_status`, `no_of_seats`, `t_duration`, `route`) VALUES
-(0, '[value-2]', '[value-3]', '[value-4]', '[value-5]', '[value-6]', 0, 0, '[value-9]'),
+(0, 'Express B', 'Ruiru', 'Syokimau', 'Express', 'On time', 15, 45, 'Ruiru to Syokimau'),
 (1001, 'Express A', 'Embakasi Village', 'Ruiru', 'Express', 'On time', 500, 30, 'Embakasi Village to Ruiru'),
 (1002, 'Commuter X', 'Syokimau', 'Embakasi Village', 'Commuter', 'On time', 600, 25, '');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
 
 --
 -- Indexes for table `passengers`
@@ -233,12 +238,6 @@ ALTER TABLE `seats`
   ADD PRIMARY KEY (`id`),
   ADD KEY `train_name` (`train_name`),
   ADD KEY `fk_train_no` (`t_no`);
-
---
--- Indexes for table `staff`
---
-ALTER TABLE `staff`
-  ADD PRIMARY KEY (`s_id`);
 
 --
 -- Indexes for table `station`
@@ -264,28 +263,28 @@ ALTER TABLE `trains`
 --
 
 --
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `passengers`
 --
 ALTER TABLE `passengers`
-  MODIFY `p_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `p_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `seats`
 --
 ALTER TABLE `seats`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
-
---
--- AUTO_INCREMENT for table `staff`
---
-ALTER TABLE `staff`
-  MODIFY `s_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=306;
 
 --
 -- AUTO_INCREMENT for table `station`
 --
 ALTER TABLE `station`
-  MODIFY `s_no` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `s_no` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables

@@ -59,6 +59,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Link to Registration Page -->
     <p>Don't have an account? <a href="admin_register.php">Click here to register</a></p>
+
+
     
 </div>
 

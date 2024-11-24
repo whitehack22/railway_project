@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 if (isset($_POST['submit'])) {
     // Include database connection
     include('includes/db.php');  // assuming you have a separate db.php file
@@ -16,14 +17,20 @@ if (isset($_POST['submit'])) {
 
     // Check if user exists and verify password
     if ($user && password_verify($pw, $user['password'])) {
-        $_SESSION['user_info'] = $user['email']; // You can store user ID or another identifier
+        // Store user details in session
+        $_SESSION['user_info'] = $user['email']; // Store email in session
+        $_SESSION['p_id'] = $user['p_id'];        // Store passenger ID in session
+
         $message = 'Logged in successfully!';
+        header("Location: index.php");  // Redirect to a dashboard or main page after login
+        exit();
     } else {
         $message = 'Wrong email or password.';
     }
     echo "<script type='text/javascript'>alert('$message');</script>";
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>

@@ -1,64 +1,84 @@
 <?php
 session_start();
 
-
+// Database connection
 $conn = mysqli_connect("localhost", "root", "", "nairobi_commuters");
 if (!$conn) {
     die('Database connection failed: ' . mysqli_connect_error());
 }
 
+// Function to check PNR status
+function checkPNRStatus($conn, $pnr)
+{
+    $stmt = $conn->prepare("SELECT t_status FROM tickets WHERE PNR = ?");
+    if (!$stmt) {
+        return ['error' => 'SQL prepare failed: ' . $conn->error];
+    }
 
-if (isset($_POST['submit'])) {
-    $pnr = intval($_POST['pnr']); 
+    $stmt->bind_param("s", $pnr); // Use 's' for string PNR
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if (empty($pnr)) {
-        echo "<script type='text/javascript'>alert('PNR is required to check status.');</script>";
-    } else {
-        $stmt = $conn->prepare("SELECT t_status FROM tickets WHERE PNR = ?");
-        if (!$stmt) {
-            die('SQL prepare failed: ' . $conn->error);
-        }
+    if (!$result) {
+        return ['error' => 'Query failed: ' . $stmt->error];
+    }
 
-        $stmt->bind_param("i", $pnr); 
-        $stmt->execute();
-        $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
 
-        if (!$result) {
-            die('Query failed: ' . $stmt->error);
-        }
+    if ($row === null) {
+        return ['message' => 'PNR not found. Please check your PNR.'];
+    }
 
-        $row = $result->fetch_assoc();
+    return ['status' => $row['t_status']];
+}
 
-        if ($row == NULL) {
-            echo "<script type='text/javascript'>alert('PNR not found. Please check your PNR.');</script>";
-        } else {
-            echo "<script type='text/javascript'>alert('Your ticket status is: {$row['t_status']}');</script>";
-        }
+// Function to cancel ticket
+function cancelTicket($conn, $pnr)
+{
+    $stmt = $conn->prepare("DELETE FROM tickets WHERE PNR = ?");
+    if (!$stmt) {
+        return ['error' => 'SQL prepare failed: ' . $conn->error];
+    }
+
+    $stmt->bind_param("s", $pnr); // Use 's' for string PNR
+    if ($stmt->execute()) {
         $stmt->close();
+        return ['message' => 'Your ticket has been successfully cancelled.'];
+    } else {
+        $stmt->close();
+        return ['error' => 'Ticket cancellation failed. Please try again.'];
     }
 }
 
-
-if (isset($_POST['cancel'])) {
-    $pnr = intval($_POST['pnr']); 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $pnr = trim($_POST['pnr']); // Sanitize input
 
     if (empty($pnr)) {
-        echo "<script type='text/javascript'>alert('PNR is required to cancel a ticket.');</script>";
-    } else {
-        $stmt = $conn->prepare("DELETE FROM tickets WHERE PNR = ?");
-        if (!$stmt) {
-            die('SQL prepare failed: ' . $conn->error);
-        }
-
-        $stmt->bind_param("i", $pnr); 
-        if ($stmt->execute()) {
-            echo "<script type='text/javascript'>alert('Your ticket has been successfully cancelled.');</script>";
+        echo "<script>alert('PNR is required.');</script>";
+    } elseif (isset($_POST['submit'])) {
+        // Check PNR status
+        $response = checkPNRStatus($conn, $pnr);
+        if (isset($response['error'])) {
+            echo "<script>alert('Error: {$response['error']}');</script>";
+        } elseif (isset($response['message'])) {
+            echo "<script>alert('{$response['message']}');</script>";
         } else {
-            echo "<script type='text/javascript'>alert('Ticket cancellation failed. Please try again.');</script>";
+            echo "<script>alert('Your ticket status is: {$response['status']}');</script>";
         }
-        $stmt->close();
+    } elseif (isset($_POST['cancel'])) {
+        // Cancel ticket
+        $response = cancelTicket($conn, $pnr);
+        if (isset($response['error'])) {
+            echo "<script>alert('Error: {$response['error']}');</script>";
+        } else {
+            echo "<script>alert('{$response['message']}');</script>";
+        }
     }
 }
+
+// Close the database connection
+mysqli_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -107,10 +127,18 @@ if (isset($_POST['cancel'])) {
         <div id="pnr">
             <strong style="color: white;">Check your Nairobi Commuters Railway PNR status:</strong><br/><br/>
 
-            
             <form method="post" action="pnrstatus.php">
                 <div id="pnrtext">
-                    <input type="text" name="pnr" size="30" maxlength="10" placeholder="Enter PNR here" required>
+                    <input 
+                        type="text" 
+                        name="pnr" 
+                        size="30" 
+                        maxlength="10" 
+                        placeholder="Enter PNR here" 
+                        required 
+                        pattern="[A-Za-z0-9]+" 
+                        title="PNR should be alphanumeric (letters and/or numbers)"
+                    />
                 </div>
                 <br/>
                 <input type="submit" name="submit" value="Check Status" class="button"><br/><br/>
@@ -123,5 +151,17 @@ if (isset($_POST['cancel'])) {
             </form>
         </div>
     </center>
+
+    <script>
+        // Confirm cancellation
+        const cancelButton = document.querySelector('[name="cancel"]');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function (e) {
+                if (!confirm('Are you sure you want to cancel this ticket?')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
